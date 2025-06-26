@@ -3,9 +3,10 @@ import streamlit as st
 import pickle as pkl
 import pandas as pd
 
-# Google Drive direct download links
-MOVIES_URL = "https://drive.google.com/uc?id=1fqAvwG40ItYktHhAh_HphfqmgSrpFdwi"
-SIMILARITY_URL = "https://drive.google.com/uc?id=1aQIMTClslgvdhPxtYeF6zNaHtB2sIBGR"
+# Google Drive direct and reliable links
+MOVIES_URL = "https://drive.google.com/uc?export=download&id=1fqAvwG40ItYktHhAh_HphfqmgSrpFdwi"
+SIMILARITY_URL = "https://drive.google.com/uc?export=download&id=1aQIMTClslgvdhPxtYeF6zNaHtB2sIBGR"
+
 
 @st.cache_resource(show_spinner="Loading model files...")
 def load_data():
