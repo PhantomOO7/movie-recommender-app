@@ -3,13 +3,24 @@ import streamlit as st
 import pickle as pkl
 import pandas as pd
 
+# Google Drive direct download links
+MOVIES_URL = "https://drive.google.com/uc?id=1fqAvwG40ItYktHhAh_HphfqmgSrpFdwi"
+SIMILARITY_URL = "https://drive.google.com/uc?id=1aQIMTClslgvdhPxtYeF6zNaHtB2sIBGR"
+
+@st.cache_resource(show_spinner="Loading model files...")
+def load_data():
+    movies_response = requests.get(MOVIES_URL)
+    similarity_response = requests.get(SIMILARITY_URL)
+    movies = pd.DataFrame(pkl.loads(movies_response.content))
+    similarity = pkl.loads(similarity_response.content)
+    return movies, similarity
+
 def fetch_poster(movie_id):
     response = requests.get(
         'https://api.themoviedb.org/3/movie/{}?api_key=ed5d3391d93b228448f662150c9022ae&language=en-US'.format(movie_id)
     )
     data = response.json()
     return "https://image.tmdb.org/t/p/w500/" + data['poster_path']
-
 
 def recommend(movie):
     movie_index = movies[movies['title'] == movie].index[0]
@@ -23,36 +34,29 @@ def recommend(movie):
         recommended_movies_poster.append(fetch_poster(movie_id))
     return recommended_movies, recommended_movies_poster
 
-# File upload UI
+# Streamlit UI
 st.title('Movie Recommender System')
 
-movies_file = st.file_uploader("Upload movies.pkl", type="pkl")
-similarity_file = st.file_uploader("Upload similarity.pkl", type="pkl")
+movies, similarity = load_data()
 
-if movies_file and similarity_file:
-    movies = pd.DataFrame(pkl.load(movies_file))
-    similarity = pkl.load(similarity_file)
+selected_movie = st.selectbox('search movies', movies['title'].values)
 
-    selected_movie = st.selectbox('search movies', movies['title'].values)
+if st.button('recommend movies'):
+    names, posters = recommend(selected_movie)
 
-    if st.button('recommend movies'):
-        names, posters = recommend(selected_movie)
-
-        col1, col2, col3, col4, col5 = st.columns(5)
-        with col1:
-            st.text(names[0])
-            st.image(posters[0])
-        with col2:
-            st.text(names[1])
-            st.image(posters[1])
-        with col3:
-            st.text(names[2])
-            st.image(posters[2])
-        with col4:
-            st.text(names[3])
-            st.image(posters[3])
-        with col5:
-            st.text(names[4])
-            st.image(posters[4])
-else:
-    st.warning("Please upload both `movies.pkl` and `similarity.pkl` files to continue.")
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        st.text(names[0])
+        st.image(posters[0])
+    with col2:
+        st.text(names[1])
+        st.image(posters[1])
+    with col3:
+        st.text(names[2])
+        st.image(posters[2])
+    with col4:
+        st.text(names[3])
+        st.image(posters[3])
+    with col5:
+        st.text(names[4])
+        st.image(posters[4])
