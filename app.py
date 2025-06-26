@@ -1,24 +1,28 @@
-import requests
 import streamlit as st
-import pickle as pkl
 import pandas as pd
+import pickle
+import requests
+import gdown  # ✅ Make sure to include this in requirements.txt
 
-# Google Drive direct and reliable links
-MOVIES_URL = "https://drive.google.com/uc?export=download&id=1fqAvwG40ItYktHhAh_HphfqmgSrpFdwi"
-SIMILARITY_URL = "https://drive.google.com/uc?export=download&id=1aQIMTClslgvdhPxtYeF6zNaHtB2sIBGR"
+MOVIES_ID = "1fqAvwG40ItYktHhAh_HphfqmgSrpFdwi"
+SIMILARITY_ID = "1aQIMTClslgvdhPxtYeF6zNaHtB2sIBGR"
 
-
-@st.cache_resource(show_spinner="Loading model files...")
+@st.cache_resource(show_spinner="Downloading data from Google Drive...")
 def load_data():
-    movies_response = requests.get(MOVIES_URL)
-    similarity_response = requests.get(SIMILARITY_URL)
-    movies = pd.DataFrame(pkl.loads(movies_response.content))
-    similarity = pkl.loads(similarity_response.content)
+    gdown.download(f"https://drive.google.com/uc?id={MOVIES_ID}", "movies.pkl", quiet=False)
+    gdown.download(f"https://drive.google.com/uc?id={SIMILARITY_ID}", "similarity.pkl", quiet=False)
+
+    with open("movies.pkl", "rb") as f:
+        movies = pd.DataFrame(pickle.load(f))
+
+    with open("similarity.pkl", "rb") as f:
+        similarity = pickle.load(f)
+
     return movies, similarity
 
 def fetch_poster(movie_id):
     response = requests.get(
-        'https://api.themoviedb.org/3/movie/{}?api_key=ed5d3391d93b228448f662150c9022ae&language=en-US'.format(movie_id)
+        f'https://api.themoviedb.org/3/movie/{movie_id}?api_key=ed5d3391d93b228448f662150c9022ae&language=en-US'
     )
     data = response.json()
     return "https://image.tmdb.org/t/p/w500/" + data['poster_path']
@@ -35,7 +39,9 @@ def recommend(movie):
         recommended_movies_poster.append(fetch_poster(movie_id))
     return recommended_movies, recommended_movies_poster
 
-# Streamlit UI
+# -------------------------------
+# UI
+# -------------------------------
 st.title('Movie Recommender System')
 
 movies, similarity = load_data()
